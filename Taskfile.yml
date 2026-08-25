@@ -20,11 +20,8 @@ tasks:
     desc: Access psql by docker container to run SQL
     cmds: [docker exec -it lightning-nodes-service-postgres-1 psql -U postgres]
   test:
-    desc: Run unit tests
-    cmds: [cargo test]
-  integration-test:
-    desc: Run PostgreSQL-backed integration tests
-    cmds: [cargo test --test nodes_api -- --ignored]
+    desc: Run tests
+    cmds: [cargo test --all-targets --all-features]
   check:
     desc: Check the project
     cmds: [cargo check]
