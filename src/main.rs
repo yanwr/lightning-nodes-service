@@ -3,6 +3,7 @@ use tracing::{error, info};
 
 #[tokio::main]
 async fn main() {
+    dotenvy::dotenv().ok();
     tracing_subscriber::fmt()
         .json()
         .with_env_filter(
