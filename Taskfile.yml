@@ -1,0 +1,46 @@
+version: "3"
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds: [task --list]
+  setup:
+    desc: Create local environment file
+    cmds: [sh -c 'test -f .env || cp .env.example .env']
+  start:
+    desc: Start the full stack with Docker Compose
+    cmds: [docker compose up --build]
+  stop:
+    desc: Stop the Docker Compose stack
+    cmds: [docker compose down]
+  local/run:
+    desc: Run the application locally
+    cmds: [cargo run]
+  docker/psql:
+    desc: Access psql by docker container to run SQL
+    cmds: [docker exec -it lightning-nodes-service-postgres-1 psql -U postgres]
+  test:
+    desc: Run unit tests
+    cmds: [cargo test]
+  integration-test:
+    desc: Run PostgreSQL-backed integration tests
+    cmds: [cargo test --test nodes_api -- --ignored]
+  check:
+    desc: Check the project
+    cmds: [cargo check]
+  fmt:
+    desc: Format the project
+    cmds: [cargo fmt --all]
+  fmt-check:
+    desc: Check formatting
+    cmds: [cargo fmt --all -- --check]
+  clippy:
+    desc: Run Clippy with warnings denied
+    cmds: [cargo clippy --all-targets --all-features -- -D warnings]
+  verify:
+    desc: Run the complete local verification suite
+    cmds:
+      - task: fmt-check
+      - task: check
+      - task: clippy
+      - task: test

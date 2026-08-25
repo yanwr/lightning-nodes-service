@@ -1,4 +1,4 @@
-use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
+use sqlx::{PgPool, Pool, Postgres, migrate::MigrateError, postgres::PgPoolOptions};
 
 use crate::{errors::EnvironmentError, infras::env::Environment};
 
@@ -25,6 +25,11 @@ impl DatabaseConfig {
             .test_before_acquire(true)
             .connect(&self.url)
             .await?;
+        Self::run_migrate(&pool).await?;
         Ok(pool)
+    }
+
+    async fn run_migrate(pool: &PgPool) -> Result<(), MigrateError> {
+        sqlx::migrate!("./migrations").run(pool).await
     }
 }
