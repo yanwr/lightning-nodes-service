@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::{
     errors::EnvironmentError,
     infras::{database::DatabaseConfig, env::Environment},
@@ -6,6 +8,7 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct GatewayConfig {
     pub mempool_url: String,
+    pub mempool_timeout: Duration
 }
 
 #[derive(Debug, Clone)]
@@ -24,6 +27,7 @@ impl AppConfig {
             database: DatabaseConfig::from_env()?,
             gateways: GatewayConfig {
                 mempool_url: Environment::as_string("GATEWAY_MEMPOOL_URL")?,
+                mempool_timeout: Duration::from_secs(Environment::parse("GATEWAY_MEMPOOL_TIMEOUT_SECONDS")?)
             },
         })
     }
@@ -42,6 +46,10 @@ mod tests {
                 (
                     "GATEWAY_MEMPOOL_URL",
                     Some("https://mempool.space/api/v1/lightning/nodes/rankings/connectivity"),
+                ),
+                (
+                    "GATEWAY_MEMPOOL_TIMEOUT_SECONDS",
+                    Some("5"),
                 ),
                 (
                     "DATABASE_URL",
