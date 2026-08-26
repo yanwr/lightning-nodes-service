@@ -5,12 +5,12 @@ use crate::config::AppConfig;
 
 #[derive(Debug, Clone)]
 pub struct MempoolGateway {
-    pub(crate) client: Client,
-    pub(crate) url: String
+    pub client: Client,
+    pub url: String
 }
 
 impl MempoolGateway {
-    pub fn new(app_config: &AppConfig) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new(app_config: &AppConfig) -> Result<Self, reqwest::Error> {
         Ok(Self { 
             client: Client::builder()
                 .timeout(app_config.gateways.mempool_timeout)

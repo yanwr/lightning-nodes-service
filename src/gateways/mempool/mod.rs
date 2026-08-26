@@ -10,7 +10,7 @@ pub struct Gateways {
 }
 
 impl Gateways {
-    pub fn new(app_config: &AppConfig) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new(app_config: &AppConfig) -> Result<Self, reqwest::Error> {
         Ok(Self { 
             mempool: MempoolGateway::new(app_config)?
         })
