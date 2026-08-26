@@ -11,16 +11,16 @@ pub async fn run_replace_nodes(
     let mut ticker = tokio::time::interval(interval);
     loop {
         ticker.tick().await;
+        info!("[Job Replace Nodes] starting node replacement ...");
         match replace_nodes(&app_state).await {
             Ok(()) => {
-                info!(
-                    "node import completed"
-                );
+                info!("[Job Replace Nodes] nodes replace completed");
             }
             Err(error) => {
+                // not return Err because the next replace attempt may succeed and the app dont stop
                 error!(
                     error = %error,
-                    "node import failed"
+                    "[Job Replace Nodes] nodes replace failed"
                 );
             }
         }
