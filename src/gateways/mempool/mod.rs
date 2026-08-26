@@ -3,6 +3,8 @@ use crate::{config::AppConfig, gateways::mempool::gateway::MempoolGateway};
 pub mod gateway;
 pub mod fetch_rankings_connectivity;
 
+
+#[derive(Debug, Clone)]
 pub struct Gateways {
     pub mempool: MempoolGateway
 }

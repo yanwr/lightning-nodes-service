@@ -2,6 +2,8 @@ use reqwest::Client;
 
 use crate::config::AppConfig;
 
+
+#[derive(Debug, Clone)]
 pub struct MempoolGateway {
     pub(crate) client: Client,
     pub(crate) url: String
