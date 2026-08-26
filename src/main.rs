@@ -1,4 +1,6 @@
-use lightning_nodes_service::{config::AppConfig, state::AppState};
+use std::sync::Arc;
+
+use lightning_nodes_service::{config::AppConfig, nodes::jobs::job_replace_nodes::run_replace_nodes, state::AppState};
 use tracing::{error, info};
 
 #[tokio::main]
@@ -19,7 +21,10 @@ async fn main() {
 
 async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let app_config = AppConfig::from_env()?;
-    let _app_state = AppState::create(app_config).await?;
+    let app_state = Arc::new(AppState::create(app_config.clone()).await?);
+
+    let replace_interval = app_config.replace_interval;
+    run_replace_nodes(Arc::clone(&app_state), replace_interval).await;
     info!("HTTP Server runing !!");
     Ok(())
 }

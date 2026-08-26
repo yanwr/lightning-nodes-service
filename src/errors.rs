@@ -15,6 +15,13 @@ pub enum AppError {
     MempoolGatewayErrorResponse { 
         status: StatusCode 
     },
+    #[error("Mempool Service invalid data: {0}")]
+    MempoolGatewayInvalidData(String),
+    #[error("Database operation failed")]
+    BusinessDatabaseError{
+        #[source]
+        source: sqlx::Error,
+    },
 }
 
 #[derive(Debug, Error)]
@@ -56,6 +63,16 @@ impl IntoResponse for AppError {
                 "MEMPOOL_GATEWAY_ERROR",
                 "The Mempool Gateway returned an unexpected response.",
             ),
+            Self::MempoolGatewayInvalidData { .. } => (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "MEMPOOL_GATEWAY_ERROR",
+                "The Mempool Gateway returned invalid data."
+            ),
+            Self::BusinessDatabaseError { .. } => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "DATABASE_ERROR",
+                "THe Database failed with internal errors"
+            ),
         };
         tracing::error!(error = ?self, request_id = %request_id, code, "request failed");
         (
@@ -64,5 +81,11 @@ impl IntoResponse for AppError {
                 error: AppErrorData::new(code, message, &request_id)
             }),
         ).into_response()
+    }
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(source: sqlx::Error) -> Self {
+        Self::BusinessDatabaseError { source }
     }
 }
