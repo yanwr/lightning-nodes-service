@@ -1,8 +1,8 @@
 use crate::{errors::AppError, gateways::mempool::gateway::MempoolGateway};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tracing::error;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MempoolNodeResponse {
     pub public_key: String,

@@ -22,6 +22,8 @@ pub enum AppError {
         #[source]
         source: sqlx::Error,
     },
+    #[error("Reqwest operation failed")]
+    Reqwest(reqwest::Error),
 }
 
 #[derive(Debug, Error)]
@@ -71,8 +73,13 @@ impl IntoResponse for AppError {
             Self::BusinessDatabaseError { .. } => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "DATABASE_ERROR",
-                "THe Database failed with internal errors"
+                "The Database failed with internal errors"
             ),
+            Self::Reqwest(..) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "REQWEST_ERROR",
+                "Reqwest client internal error"
+            )
         };
         tracing::error!(error = ?self, request_id = %request_id, code, "request failed");
         (
@@ -87,5 +94,11 @@ impl IntoResponse for AppError {
 impl From<sqlx::Error> for AppError {
     fn from(source: sqlx::Error) -> Self {
         Self::BusinessDatabaseError { source }
+    }
+}
+
+impl From<reqwest::Error> for AppError {
+    fn from(source: reqwest::Error) -> Self {
+        Self::MempoolGatewayError { source }
     }
 }
