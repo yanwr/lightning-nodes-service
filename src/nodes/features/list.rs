@@ -27,9 +27,7 @@ fn sats_to_btc(sats: i64) -> String {
     format!("{}.{:08}", sats / BTC_IN_STATS, sats % BTC_IN_STATS)
 }
 
-pub async fn list_nodes(
-    app_state: &AppState,
-) -> Result<Vec<NodeResponse>, AppError> {
+pub async fn list_nodes(app_state: &AppState) -> Result<Vec<NodeResponse>, AppError> {
     let nodes = Node::list(&app_state.postgres_pool).await?;
     Ok(nodes.into_iter().map(NodeResponse::from).collect())
 }
@@ -40,16 +38,11 @@ mod tests {
     use chrono::DateTime;
     use test_context::test_context;
 
-    use crate::{
-        infras::test_context::TestContext,
-        nodes::model::Node,
-    };
+    use crate::{infras::test_context::TestContext, nodes::model::Node};
 
     #[test_context(TestContext)]
     #[tokio::test]
-    async fn should_return_empty_nodes_when_database_has_no_nodes(
-        ctx: &mut TestContext,
-    ) {
+    async fn should_return_empty_nodes_when_database_has_no_nodes(ctx: &mut TestContext) {
         let result = list_nodes(&ctx.app_state).await;
         assert!(result.is_ok());
         let nodes = result.unwrap();
@@ -58,9 +51,7 @@ mod tests {
 
     #[test_context(TestContext)]
     #[tokio::test]
-    async fn should_return_all_nodes_when_database_has_nodes(
-        ctx: &mut TestContext,
-    ) {
+    async fn should_return_all_nodes_when_database_has_nodes(ctx: &mut TestContext) {
         let expected_nodes = vec![
             Node {
                 public_key: "public-key-1".to_string(),
@@ -76,12 +67,9 @@ mod tests {
             },
         ];
 
-        Node::replace(
-            &ctx.app_state.postgres_pool,
-            &expected_nodes,
-        )
-        .await
-        .unwrap();
+        Node::replace(&ctx.app_state.postgres_pool, &expected_nodes)
+            .await
+            .unwrap();
 
         let result = list_nodes(&ctx.app_state).await;
         assert!(result.is_ok());

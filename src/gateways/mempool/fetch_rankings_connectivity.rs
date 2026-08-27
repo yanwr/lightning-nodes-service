@@ -13,24 +13,21 @@ pub struct MempoolNodeResponse {
 
 impl MempoolGateway {
     pub async fn fetch_rankings_connectivity(&self) -> Result<Vec<MempoolNodeResponse>, AppError> {
-        let response = self
-            .client
-            .get(&self.url)
-            .send()
-            .await
-            .map_err(|err| {
-                error!(error = %err, "[MempoolGateway] Error to fetch_rankings_connectivity");
-                return AppError::MempoolGatewayError { source: err };
-            })?;
+        let response = self.client.get(&self.url).send().await.map_err(|err| {
+            error!(error = %err, "[MempoolGateway] Error to fetch_rankings_connectivity");
+            AppError::MempoolGatewayError { source: err }
+        })?;
         if !response.status().is_success() {
-            return Err(AppError::MempoolGatewayErrorResponse { status: response.status() })
+            return Err(AppError::MempoolGatewayErrorResponse {
+                status: response.status(),
+            });
         }
         let payload = response
             .json::<Vec<MempoolNodeResponse>>()
             .await
             .map_err(|err| {
                 error!(error = %err, "[MempoolGateway] Error to parse fetch_rankings_connectivity response");
-                return AppError::MempoolGatewayError { source: err };
+                AppError::MempoolGatewayError { source: err }
             })?;
         Ok(payload)
     }
@@ -43,14 +40,17 @@ mod tests {
     use reqwest::Client;
     use serde_json::json;
     use wiremock::{
-        matchers::{method, path},
         Mock, MockServer, ResponseTemplate,
+        matchers::{method, path},
     };
 
     fn create_gateway(server: &MockServer) -> MempoolGateway {
         MempoolGateway {
             client: Client::new(),
-            url: format!("{}/api/v1/lightning/nodes/rankings/connectivity", server.uri()),
+            url: format!(
+                "{}/api/v1/lightning/nodes/rankings/connectivity",
+                server.uri()
+            ),
         }
     }
 
@@ -88,10 +88,7 @@ mod tests {
 
         Mock::given(method("GET"))
             .and(path("/api/v1/lightning/nodes/rankings/connectivity"))
-            .respond_with(
-                ResponseTemplate::new(200)
-                    .set_body_json(response_body),
-            )
+            .respond_with(ResponseTemplate::new(200).set_body_json(response_body))
             .mount(&server)
             .await;
 
@@ -122,10 +119,7 @@ mod tests {
 
         Mock::given(method("GET"))
             .and(path("/api/v1/lightning/nodes/rankings/connectivity"))
-            .respond_with(
-                ResponseTemplate::new(200)
-                    .set_body_json(json!([])),
-            )
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!([])))
             .mount(&server)
             .await;
 
@@ -180,24 +174,17 @@ mod tests {
 
         Mock::given(method("GET"))
             .and(path("/api/v1/lightning/nodes/rankings/connectivity"))
-            .respond_with(
-                ResponseTemplate::new(200)
-                    .set_body_string("this is not valid json"),
-            )
+            .respond_with(ResponseTemplate::new(200).set_body_string("this is not valid json"))
             .mount(&server)
             .await;
 
         let gateway = create_gateway(&server);
         let result = gateway.fetch_rankings_connectivity().await;
-        assert!(matches!(
-            result,
-            Err(AppError::MempoolGatewayError { .. })
-        ));
+        assert!(matches!(result, Err(AppError::MempoolGatewayError { .. })));
     }
 
     #[tokio::test]
-    async fn should_return_error_when_response_json_has_invalid_schema(
-    ) {
+    async fn should_return_error_when_response_json_has_invalid_schema() {
         let server = MockServer::start().await;
         let response_body = json!([
             {
@@ -210,33 +197,23 @@ mod tests {
 
         Mock::given(method("GET"))
             .and(path("/api/v1/lightning/nodes/rankings/connectivity"))
-            .respond_with(
-                ResponseTemplate::new(200)
-                    .set_body_json(response_body),
-            )
+            .respond_with(ResponseTemplate::new(200).set_body_json(response_body))
             .mount(&server)
             .await;
 
         let gateway = create_gateway(&server);
         let result = gateway.fetch_rankings_connectivity().await;
-        assert!(matches!(
-            result,
-            Err(AppError::MempoolGatewayError { .. })
-        ));
+        assert!(matches!(result, Err(AppError::MempoolGatewayError { .. })));
     }
 
     #[tokio::test]
     async fn should_return_error_when_server_is_unreachable() {
         let gateway = MempoolGateway {
             client: Client::new(),
-            url: "http://127.0.0.1:1/api/v1/lightning/nodes/rankings/connectivity"
-                .to_owned(),
+            url: "http://127.0.0.1:1/api/v1/lightning/nodes/rankings/connectivity".to_owned(),
         };
 
         let result = gateway.fetch_rankings_connectivity().await;
-        assert!(matches!(
-            result,
-            Err(AppError::MempoolGatewayError { .. })
-        ));
+        assert!(matches!(result, Err(AppError::MempoolGatewayError { .. })));
     }
 }
