@@ -34,6 +34,22 @@ impl Node {
         tx.commit().await?;
         Ok(())
     }
+
+    pub async fn list(pool: &PgPool) -> Result<Vec<Self>, AppError> {
+        let nodes = sqlx::query_as::<_, Self>(
+            r#"
+            SELECT
+                public_key,
+                alias,
+                capacity_sats,
+                first_seen
+            FROM nodes
+            "#,
+        )
+        .fetch_all(pool)
+        .await?;
+        Ok(nodes)
+    }
 }
 
 impl TryFrom<MempoolNodeResponse> for Node {

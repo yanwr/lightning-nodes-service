@@ -1494,6 +1494,7 @@ dependencies = [
  "testcontainers-modules",
  "thiserror",
  "tokio",
+ "tower",
  "tower-http 0.7.0",
  "tracing",
  "tracing-subscriber",
@@ -3120,10 +3121,13 @@ dependencies = [
  "bitflags 2.13.1",
  "bytes",
  "http",
+ "http-body",
  "percent-encoding",
  "pin-project-lite",
  "tower-layer",
  "tower-service",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
