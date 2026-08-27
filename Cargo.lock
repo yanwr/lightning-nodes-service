@@ -1494,6 +1494,7 @@ dependencies = [
  "testcontainers-modules",
  "thiserror",
  "tokio",
+ "tower",
  "tower-http 0.7.0",
  "tracing",
  "tracing-subscriber",

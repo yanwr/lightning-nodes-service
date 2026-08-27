@@ -25,4 +25,5 @@ temp-env = { version = "0.3.6" }
 test-context = { version = "0.5.8" }
 testcontainers = { version = "0.27.2" }
 testcontainers-modules = { version = "0.15.0", features = ["postgres"] }
+tower = { version = "0.5.3" }
 wiremock = { version = "0.6.5" }
