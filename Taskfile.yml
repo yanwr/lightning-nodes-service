@@ -34,7 +34,7 @@ tasks:
   clippy:
     desc: Run Clippy with warnings denied
     cmds: [cargo clippy --all-targets --all-features -- -D warnings]
-  verify:
+  check-all:
     desc: Run the complete local verification suite
     cmds:
       - task: fmt-check
