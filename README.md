@@ -13,7 +13,7 @@ A Rust service that periodically imports Lightning Network node data from the Me
 - Docker / Docker Compose
 - Taskfile
 - Test Context
-- Test Containers
+- Testcontainers
 - Wiremock
 
 ## Architecture
@@ -90,8 +90,7 @@ get Nodes from MempoolGateway             │
 
 ### Prerequisites
 
-The application can be run locally using Docker Compose. No local PostgreSQL installation is required. Make sure Docker, Docker Compose and Taskfile are available.
-
+The application can be run locally using Docker Compose. No local PostgreSQL installation is required. Make sure Docker, Docker Compose, and Taskfile are available.
 
 1. Clone the repository
 
@@ -105,29 +104,30 @@ cd lightning-nodes-service
 ```bash
 task setup
 ```
-Adjust the values in .env if necessary.
-<b>And adjust the values from docker-compose.yml too.</br>
 
+Adjust the values in `.env` if necessary. **Also adjust the corresponding values in `docker-compose.yml`.**
+
+### Running the app
 
 3. Start the application
+
 ```bash
 task start
 ```
 
 The application starts the PostgreSQL database, runs the database migrations, starts the background node replacement job, and exposes the HTTP API.
 
-The API is available at: http://localhost:3000
+The API is available at: `http://localhost:3000`
 
 4. List Lightning nodes
 
 ```bash
 curl http://localhost:3000/nodes
-``` 
+```
 
-The endpoint returns the nodes currently stored in database.
+The endpoint returns the nodes currently stored in the database.
 
-
-### To run Tests
+### Running tests
 
 The test suite uses Testcontainers, so PostgreSQL is automatically started by the tests. No PostgreSQL container needs to be manually started for the test suite.
 
@@ -137,7 +137,7 @@ task test
 
 ### Run the application locally without Docker
 
-<b>To run locally you need to comment the app from from docker-compose.yml.</b> Keep only PostgreSQL service to connect with database.
+**To run locally, you need to comment out the app service in `docker-compose.yml`.** Keep only the PostgreSQL service to connect to the database.
 
 ```bash
 task local/run
@@ -151,7 +151,6 @@ The application will run the database migrations automatically during startup.
 task check-all
 ```
 
-
 ## What was the reason for your focus? What problems were you trying to solve?
 
 The main focus was to build a small but production-oriented service for retrieving and serving Lightning Network node data.
@@ -163,15 +162,15 @@ The service has two main responsibilities:
 
 I focused on keeping the implementation simple and easy to reason about while still addressing some important backend concerns:
 
-Clear separation between external API communication, business features, persistence, and HTTP handling.
-Automatic database migrations during application startup.
-Periodic synchronization of node data every secods you wish just ajust env.
-Atomic replacement of the database snapshot using a PostgreSQL transaction.
-Proper propagation and categorization of gateway and database errors.
-HTTP error responses with stable error codes and request IDs.
-Integration tests using a real PostgreSQL instance through Testcontainers.
-Gateway tests using an HTTP mock instead of depending on the real Mempool service.
-Configuration tests without mutating the developer's environment permanently.
+- Clear separation between external API communication, business features, persistence, and HTTP handling.
+- Automatic database migrations during application startup.
+- Periodic synchronization of node data at a configurable interval — just adjust the env variable.
+- Atomic replacement of the database snapshot using a PostgreSQL transaction.
+- Proper propagation and categorization of gateway and database errors.
+- HTTP error responses with stable error codes and request IDs.
+- Integration tests using a real PostgreSQL instance through Testcontainers.
+- Gateway tests using an HTTP mock instead of depending on the real Mempool service.
+- Configuration tests without mutating the developer's environment permanently.
 
 ## How long did you spend on this project?
 
@@ -181,16 +180,17 @@ The time was primarily spent on the implementation, test coverage, project struc
 
 ## Did you make any trade-offs for this project? What would you have done differently with more time?
 
-Yes. background job: the node synchronization currently runs as a background Tokio task inside the application process and executes every 15 minutes. This keeps the solution simple and avoids introducing another infrastructure component. With more time, I would consider whether the synchronization job should eventually be moved to a dedicated worker/scheduler depending on the expected scale and deployment model.
+Yes.
 
-And the API currently focuses on the required GET /nodes use case. With more time, I would consider pagination, filtering and potentially additional node metadata depending on the expected consumers.
+**Background job:** the node synchronization currently runs as a background Tokio task inside the application process and executes every 15 minutes. This keeps the solution simple and avoids introducing another infrastructure component. With more time, I would consider whether the synchronization job should eventually be moved to a dedicated worker/scheduler depending on the expected scale and deployment model.
+
+**API scope:** the API currently focuses on the required `GET /nodes` use case. With more time, I would consider pagination, filtering, and potentially additional node metadata depending on the expected consumers.
 
 ## What do you think is the weakest part of your project?
 
-The integration test requires PostgreSQL. A CI pipeline could provision an isolated PostgreSQL service automatically.
+The integration tests require PostgreSQL. A CI pipeline could provision an isolated PostgreSQL service automatically.
 
-And the synchronization job: it is intentionally simple, but it does not provide distributed coordination. If multiple instances of the service were deployed, each instance would execute the 15-minute synchronization independently.
-
+The synchronization job is intentionally simple, but it does not provide distributed coordination. If multiple instances of the service were deployed, each instance would execute the 15-minute synchronization independently.
 
 ## API Docs
 
