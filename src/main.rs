@@ -1,5 +1,8 @@
+use lightning_nodes_service::{
+    config::AppConfig, nodes::jobs::job_replace_nodes::run_replace_nodes, routes::build_routes,
+    state::AppState,
+};
 use std::sync::Arc;
-use lightning_nodes_service::{config::AppConfig, nodes::jobs::job_replace_nodes::run_replace_nodes, routes::build_routes, state::AppState};
 use tokio::{net::TcpListener, signal};
 use tracing::{error, info};
 
@@ -22,14 +25,10 @@ async fn main() {
 async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let app_config = AppConfig::from_env()?;
     let app_state = Arc::new(AppState::create(app_config.clone()).await?);
-    
+
     let replace_interval = app_config.replace_interval;
-    let job_replace_nodes = tokio::spawn(
-        run_replace_nodes(
-            Arc::clone(&app_state),
-            replace_interval,
-        )
-    );
+    let job_replace_nodes =
+        tokio::spawn(run_replace_nodes(Arc::clone(&app_state), replace_interval));
 
     let app_routes = build_routes(app_state);
     let address = format!("{}:{}", app_config.host, app_config.port);
@@ -45,20 +44,16 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
 async fn shutdown_signal() {
     let ctrl_c = async {
-        signal::ctrl_c()
-            .await
-            .expect("failed to Ctrl+C handler");
+        signal::ctrl_c().await.expect("failed to Ctrl+C handler");
         info!("shutdown signal Ctrl+C received");
     };
 
     #[cfg(unix)]
     let terminate = async {
-        signal::unix::signal(
-            signal::unix::SignalKind::terminate(),
-        )
-        .expect("failed to SIGTERM handler")
-        .recv()
-        .await;
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("failed to SIGTERM handler")
+            .recv()
+            .await;
 
         info!("shutdown signal SIGTERM received");
     };

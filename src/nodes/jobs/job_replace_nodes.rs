@@ -4,10 +4,7 @@ use tracing::{error, info};
 
 use crate::{nodes::features::replace::replace_nodes, state::AppState};
 
-pub async fn run_replace_nodes(
-    app_state: Arc<AppState>,
-    interval: Duration
-) {
+pub async fn run_replace_nodes(app_state: Arc<AppState>, interval: Duration) {
     let mut ticker = tokio::time::interval(interval);
     loop {
         ticker.tick().await;

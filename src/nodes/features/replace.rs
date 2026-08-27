@@ -2,9 +2,7 @@ use tracing::info;
 
 use crate::{errors::AppError, nodes::model::Node, state::AppState};
 
-pub async fn replace_nodes(
-    app_state: &AppState,
-) -> Result<(), AppError> {
+pub async fn replace_nodes(app_state: &AppState) -> Result<(), AppError> {
     let mempool_nodes = app_state
         .gateways
         .mempool
@@ -15,11 +13,17 @@ pub async fn replace_nodes(
         .map(Node::try_from)
         .collect::<Result<Vec<Node>, AppError>>()?;
     if nodes.is_empty() {
-        info!(nodes_replaceed = nodes.len(), "[Replace Nodes] There is no nodes to replace");
+        info!(
+            nodes_replaceed = nodes.len(),
+            "[Replace Nodes] There is no nodes to replace"
+        );
         return Ok(());
     }
     Node::replace(&app_state.postgres_pool, &nodes).await?;
-    info!(nodes_replaceed = nodes.len(), "[Replace Nodes] replace nodes done!");
+    info!(
+        nodes_replaceed = nodes.len(),
+        "[Replace Nodes] replace nodes done!"
+    );
     Ok(())
 }
 
@@ -28,30 +32,23 @@ mod tests {
     use chrono::{DateTime, Utc};
     use test_context::test_context;
     use wiremock::{
+        Mock, ResponseTemplate,
         matchers::{method, path},
-        Mock,
-        ResponseTemplate,
     };
 
     use crate::{
-        errors::AppError,
-        infras::test_context::TestContext,
+        errors::AppError, infras::test_context::TestContext,
         nodes::features::replace::replace_nodes,
     };
 
     async fn count_nodes(ctx: &TestContext) -> i64 {
-        sqlx::query_scalar::<_, i64>(
-            "SELECT COUNT(*) FROM nodes",
-        )
-        .fetch_one(&ctx.app_state.postgres_pool)
-        .await
-        .expect("failed to count nodes")
+        sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM nodes")
+            .fetch_one(&ctx.app_state.postgres_pool)
+            .await
+            .expect("failed to count nodes")
     }
 
-    async fn node_exists(
-        ctx: &TestContext,
-        public_key: &str,
-    ) -> bool {
+    async fn node_exists(ctx: &TestContext, public_key: &str) -> bool {
         sqlx::query_scalar::<_, bool>(
             "
             SELECT EXISTS(
@@ -67,10 +64,7 @@ mod tests {
         .expect("failed to check node existence")
     }
 
-    async fn get_node(
-        ctx: &TestContext,
-        public_key: &str,
-    ) -> (String, String, i64, DateTime<Utc>) {
+    async fn get_node(ctx: &TestContext, public_key: &str) -> (String, String, i64, DateTime<Utc>) {
         sqlx::query_as::<_, (String, String, i64, DateTime<Utc>)>(
             "
             SELECT public_key, alias, capacity_sats, first_seen
@@ -86,9 +80,7 @@ mod tests {
 
     #[test_context(TestContext)]
     #[tokio::test]
-    async fn should_return_ok_when_mempool_returns_valid_nodes(
-        ctx: &mut TestContext,
-    ) {
+    async fn should_return_ok_when_mempool_returns_valid_nodes(ctx: &mut TestContext) {
         let response = serde_json::json!([
             {
                 "publicKey": "03abc123",
@@ -106,13 +98,9 @@ mod tests {
 
         Mock::given(method("GET"))
             .and(path("/"))
-            .respond_with(
-                ResponseTemplate::new(200)
-                    .set_body_json(response),
-            )
+            .respond_with(ResponseTemplate::new(200).set_body_json(response))
             .mount(&ctx.mock_server)
             .await;
-
 
         let result = replace_nodes(&ctx.app_state).await;
         assert!(result.is_ok());
@@ -121,23 +109,15 @@ mod tests {
         assert_eq!(node.0, "03abc123");
         assert_eq!(node.1, "node-01");
         assert_eq!(node.2, 100000);
-        assert_eq!(
-            node.3,
-            DateTime::from_timestamp(1700000000, 0).unwrap()
-        );
+        assert_eq!(node.3, DateTime::from_timestamp(1700000000, 0).unwrap());
     }
 
     #[test_context(TestContext)]
     #[tokio::test]
-    async fn should_return_ok_when_mempool_returns_empty_nodes(
-        ctx: &mut TestContext,
-    ) {
+    async fn should_return_ok_when_mempool_returns_empty_nodes(ctx: &mut TestContext) {
         Mock::given(method("GET"))
             .and(path("/"))
-            .respond_with(
-                ResponseTemplate::new(200)
-                    .set_body_json(Vec::<serde_json::Value>::new()),
-            )
+            .respond_with(ResponseTemplate::new(200).set_body_json(Vec::<serde_json::Value>::new()))
             .mount(&ctx.mock_server)
             .await;
 
@@ -171,18 +151,12 @@ mod tests {
     ) {
         Mock::given(method("GET"))
             .and(path("/"))
-            .respond_with(
-                ResponseTemplate::new(200)
-                    .set_body_string("invalid-json"),
-            )
+            .respond_with(ResponseTemplate::new(200).set_body_string("invalid-json"))
             .mount(&ctx.mock_server)
             .await;
 
         let result = replace_nodes(&ctx.app_state).await;
-        assert!(matches!(
-            result,
-            Err(AppError::MempoolGatewayError { .. })
-        ));
+        assert!(matches!(result, Err(AppError::MempoolGatewayError { .. })));
     }
 
     #[test_context(TestContext)]
@@ -201,10 +175,7 @@ mod tests {
 
         Mock::given(method("GET"))
             .and(path("/"))
-            .respond_with(
-                ResponseTemplate::new(200)
-                    .set_body_json(response),
-            )
+            .respond_with(ResponseTemplate::new(200).set_body_json(response))
             .mount(&ctx.mock_server)
             .await;
 
@@ -232,10 +203,7 @@ mod tests {
 
         Mock::given(method("GET"))
             .and(path("/"))
-            .respond_with(
-                ResponseTemplate::new(200)
-                    .set_body_json(response),
-            )
+            .respond_with(ResponseTemplate::new(200).set_body_json(response))
             .mount(&ctx.mock_server)
             .await;
 
@@ -249,9 +217,7 @@ mod tests {
 
     #[test_context(TestContext)]
     #[tokio::test]
-    async fn should_return_ok_and_replace_existing_nodes(
-        ctx: &mut TestContext,
-    ) {
+    async fn should_return_ok_and_replace_existing_nodes(ctx: &mut TestContext) {
         sqlx::query(
             "
             INSERT INTO nodes
@@ -287,10 +253,7 @@ mod tests {
 
         Mock::given(method("GET"))
             .and(path("/"))
-            .respond_with(
-                ResponseTemplate::new(200)
-                    .set_body_json(response),
-            )
+            .respond_with(ResponseTemplate::new(200).set_body_json(response))
             .mount(&ctx.mock_server)
             .await;
 

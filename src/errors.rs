@@ -1,4 +1,7 @@
-use axum::{Json, response::{IntoResponse, Response}};
+use axum::{
+    Json,
+    response::{IntoResponse, Response},
+};
 use reqwest::StatusCode;
 use serde::Serialize;
 use thiserror::Error;
@@ -12,13 +15,11 @@ pub enum AppError {
         source: reqwest::Error,
     },
     #[error("Mempool Service returned unexpected HTTP status: {status}")]
-    MempoolGatewayErrorResponse { 
-        status: StatusCode 
-    },
+    MempoolGatewayErrorResponse { status: StatusCode },
     #[error("Mempool Service invalid data: {0}")]
     MempoolGatewayInvalidData(String),
     #[error("Database operation failed")]
-    BusinessDatabaseError{
+    BusinessDatabaseError {
         #[source]
         source: sqlx::Error,
     },
@@ -47,7 +48,11 @@ pub struct AppErrorData {
 }
 impl AppErrorData {
     pub fn new(code: &str, message: &str, request_id: &str) -> Self {
-        Self { code: code.to_string(), message: message.to_string(), request_id: request_id.to_string() }
+        Self {
+            code: code.to_string(),
+            message: message.to_string(),
+            request_id: request_id.to_string(),
+        }
     }
 }
 
@@ -68,26 +73,27 @@ impl IntoResponse for AppError {
             Self::MempoolGatewayInvalidData { .. } => (
                 StatusCode::UNPROCESSABLE_ENTITY,
                 "MEMPOOL_GATEWAY_ERROR",
-                "The Mempool Gateway returned invalid data."
+                "The Mempool Gateway returned invalid data.",
             ),
             Self::BusinessDatabaseError { .. } => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "DATABASE_ERROR",
-                "The Database failed with internal errors"
+                "The Database failed with internal errors",
             ),
             Self::Reqwest(..) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "REQWEST_ERROR",
-                "Reqwest client internal error"
-            )
+                "Reqwest client internal error",
+            ),
         };
         tracing::error!(error = ?self, request_id = %request_id, code, "request failed");
         (
             status,
             Json(ErrorResponse {
-                error: AppErrorData::new(code, message, &request_id)
+                error: AppErrorData::new(code, message, &request_id),
             }),
-        ).into_response()
+        )
+            .into_response()
     }
 }
 

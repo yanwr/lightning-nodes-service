@@ -5,7 +5,11 @@ use testcontainers::{ContainerAsync, runners::AsyncRunner};
 use testcontainers_modules::postgres::Postgres;
 use wiremock::MockServer;
 
-use crate::{config::{AppConfig, GatewayConfig}, infras::database::DatabaseConfig, state::AppState};
+use crate::{
+    config::{AppConfig, GatewayConfig},
+    infras::database::DatabaseConfig,
+    state::AppState,
+};
 
 pub struct TestContext {
     pub mock_server: MockServer,
@@ -23,7 +27,7 @@ impl AsyncTestContext for TestContext {
         Self {
             container,
             mock_server,
-            app_state
+            app_state,
         }
     }
 
@@ -46,10 +50,7 @@ async fn start_postgres() -> (ContainerAsync<Postgres>, String) {
         .get_host_port_ipv4(5432)
         .await
         .expect("failed to get postgres port");
-    let database_url = format!(
-        "postgres://postgres:postgres@{}:{}/postgres",
-        host, port
-    );
+    let database_url = format!("postgres://postgres:postgres@{}:{}/postgres", host, port);
     (container, database_url)
 }
 
@@ -60,7 +61,7 @@ fn start_configs(database_url: String, mock_server: &MockServer) -> AppConfig {
         database: DatabaseConfig {
             url: database_url,
             max_connections: 5,
-            min_connections: 1
+            min_connections: 1,
         },
         gateways: GatewayConfig {
             mempool_url: mock_server.uri(),

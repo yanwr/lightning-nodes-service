@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
 use axum::{Router, http::HeaderName, routing::get};
-use tower_http::{request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer}, trace::TraceLayer};
+use tower_http::{
+    request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer},
+    trace::TraceLayer,
+};
 
 use crate::{nodes::apis::list, state::AppState};
 

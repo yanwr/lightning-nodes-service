@@ -41,19 +41,13 @@ mod tests {
     #[test]
     fn should_return_ok_from_env_when_all_required_variables_are_present() {
         temp_env::with_vars(
-        [
+            [
                 (
                     "DATABASE_URL",
                     Some("postgres://postgres:postgres@localhost:5432/lightning_nodes"),
                 ),
-                (
-                    "DATABASE_MIN_CONNECTIONS",
-                    Some("1"),
-                ),
-                (
-                    "DATABASE_MAX_CONNECTIONS",
-                    Some("10"),
-                ),
+                ("DATABASE_MIN_CONNECTIONS", Some("1")),
+                ("DATABASE_MAX_CONNECTIONS", Some("10")),
             ],
             || {
                 let result = DatabaseConfig::from_env();
@@ -76,14 +70,8 @@ mod tests {
     fn should_return_error_from_env_when_db_url_is_missing() {
         temp_env::with_vars(
             [
-                (
-                    "DATABASE_MIN_CONNECTIONS",
-                    Some("1"),
-                ),
-                (
-                    "DATABASE_MAX_CONNECTIONS",
-                    Some("10"),
-                ),
+                ("DATABASE_MIN_CONNECTIONS", Some("1")),
+                ("DATABASE_MAX_CONNECTIONS", Some("10")),
             ],
             || {
                 let result = DatabaseConfig::from_env();
@@ -105,14 +93,8 @@ mod tests {
                     "DATABASE_URL",
                     Some("postgres://postgres:postgres@localhost:5432/lightning_nodes"),
                 ),
-                (
-                    "DATABASE_MIN_CONNECTIONS",
-                    Some("1"),
-                ),
-                (
-                    "DATABASE_MAX_CONNECTIONS",
-                    None,
-                ),
+                ("DATABASE_MIN_CONNECTIONS", Some("1")),
+                ("DATABASE_MAX_CONNECTIONS", None),
             ],
             || {
                 let result = DatabaseConfig::from_env();
@@ -134,14 +116,8 @@ mod tests {
                     "DATABASE_URL",
                     Some("postgres://postgres:postgres@localhost:5432/lightning_nodes"),
                 ),
-                (
-                    "DATABASE_MIN_CONNECTIONS",
-                    None,
-                ),
-                (
-                    "DATABASE_MAX_CONNECTIONS",
-                    Some("10"),
-                ),
+                ("DATABASE_MIN_CONNECTIONS", None),
+                ("DATABASE_MAX_CONNECTIONS", Some("10")),
             ],
             || {
                 let result = DatabaseConfig::from_env();
